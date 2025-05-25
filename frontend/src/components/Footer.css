@@ -1,0 +1,36 @@
+/* frontend/src/components/Footer.css */
+.app-footer {
+  background-color: #1c2833;
+  color: #bdc3c7;
+  padding: 15px 0; /* Slightly reduced padding for a fixed footer */
+  text-align: center;
+  width: 100%;
+  position: fixed;   /* <-- Makes the footer stick to the viewport */
+  bottom: 0;         /* <-- Positions it at the bottom */
+  left: 0;           /* <-- Ensures it starts from the left edge */
+  z-index: 1000;     /* <-- Ensures it's above most other content (same as header) */
+  box-sizing: border-box; /* Ensures padding is included in the width/height */
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-content p {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+}
+
+.footer-links a {
+  color: #bdc3c7;
+  text-decoration: none;
+  margin: 0 10px;
+  font-size: 0.9em;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #3498db;
+}

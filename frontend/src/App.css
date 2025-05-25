@@ -1,0 +1,36 @@
+/* frontend/src/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ensures the container takes at least the full viewport height */
+}
+
+.main-content {
+  flex-grow: 1; /* Allows the main content to grow and push the footer down */
+  padding-top: 70px; /* Space for the fixed header (adjust if header height changes) */
+  width: 100%;
+  max-width: 1200px; /* Max width for the main content area */
+  margin: 0 auto; /* Center the main content area */
+  padding-left: 20px; /* Side padding */
+  padding-right: 20px; /* Side padding */
+  padding-bottom: 40px; /* Space above the footer */
+}
+
+/* Styles for content within the page components rendered by the router */
+.page-content {
+  text-align: center; /* Center the text within the page content div */
+  padding: 20px 0; /* Add some vertical padding */
+}
+
+.page-content h2 {
+  margin-bottom: 15px;
+  font-size: 1.8em;
+  color: #333;
+}
+
+.page-content p {
+  font-size: 1.1em;
+  color: #555;
+  line-height: 1.6;
+}
+

@@ -1,0 +1,86 @@
+/* frontend/src/components/VideoCard.css */
+.video-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 10px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease-in-out;
+}
+
+.video-card:hover {
+  transform: translateY(-5px);
+}
+
+.video-card-link { /* Style for the Link wrapping thumbnail and info */
+  text-decoration: none; /* Remove underline from link */
+  color: inherit; /* Inherit text color */
+  display: block; /* Make it a block to take up space */
+}
+
+.video-thumbnail {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  background-color: #e0e0e0;
+}
+
+.video-info {
+  padding: 15px;
+  flex-grow: 1; /* Allows this section to grow if card footer has fixed height */
+}
+
+.video-title {
+  font-size: 1.1em;
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
+  display: -webkit-box;
+  -webkit--line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 2.4em;
+}
+
+.creator-name {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 5px; /* Reduced margin */
+}
+
+.video-card-footer { /* New class for price and button container */
+    padding: 0 15px 15px 15px; /* Padding for the footer part */
+    display: flex;
+    flex-direction: column; /* Stack price and button */
+    align-items: flex-start; /* Align price to the left */
+}
+
+.video-price {
+  font-size: 1em;
+  font-weight: bold;
+  color: #27ae60;
+  margin-bottom: 10px; /* Space between price and button */
+}
+
+.buy-button { /* Styles for the Link acting as a button */
+  background-color: #3498db;
+  color: white !important;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+  /* width: 100%; REMOVED - align-items: stretch on parent does this better for flex items */
+  text-align: center;
+  text-decoration: none;
+  display: inline-block; /* or block, depending on desired full-width behavior */
+  transition: background-color 0.2s ease;
+}
+
+.buy-button:hover {
+  background-color: #2980b9;
+}

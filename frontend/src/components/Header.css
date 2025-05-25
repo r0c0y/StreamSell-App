@@ -1,0 +1,96 @@
+/* frontend/src/components/Header.css */
+
+.app-header {
+  background-color: #2c3e50; /* A dark blue-grey */
+  padding: 15px 0;
+  color: white;
+  width: 100%; /* Make header span full width */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed; /* Make it stick to the top */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensure it's above other content */
+}
+
+.header-content {
+  max-width: 1200px; /* Max width for content within header */
+  margin: 0 auto; /* Center the content */
+  padding: 0 20px; /* Padding on the sides */
+  display: flex;
+  justify-content: space-between; /* Puts logo on left, nav on right */
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #ecf0f1; /* A light grey/white */
+}
+
+.navigation a {
+  color: #ecf0f1;
+  text-decoration: none;
+  margin-left: 20px;
+  font-size: 1em;
+  transition: color 0.3s ease;
+}
+
+.navigation a:hover {
+  color: #3498db; /* A nice blue for hover */
+}
+
+.logo {
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+.logo a { /* Style for the Link component inside .logo */
+  color: #ecf0f1;
+  text-decoration: none;
+}
+
+navigation a { /* This styles both Link and NavLink initially */
+  color: #ecf0f1;
+  text-decoration: none;
+  margin-left: 20px;
+  font-size: 1em;
+  transition: color 0.3s ease, border-bottom-color 0.3s ease; /* Added border-bottom transition */
+  padding-bottom: 5px; /* Add some space for the border */
+  border-bottom: 2px solid transparent; /* Placeholder for active border */
+}
+
+.navigation a:hover {
+  color: #3498db;
+}
+
+/* Style for the active NavLink */
+.navigation a.active {
+  color: #3498db; /* Or a different highlight color */
+  font-weight: bold; /* Example: make it bold */
+  border-bottom-color: #3498db; /* Example: add an underline */
+}
+
+.navigation .user-email {
+  margin-left: 20px;
+  color: #ecf0f1; /* Or a slightly different color to stand out */
+  font-size: 0.9em;
+  padding-right: 10px; /* Space before logout button */
+  border-right: 1px solid #4a6c8c; /* Optional separator */
+  margin-right: 10px; /* Space after separator */
+}
+
+.navigation .logout-button {
+  background: none;
+  border: none;
+  color: #e74c3c; /* A distinct color for logout */
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em; /* Match other nav links */
+  padding: 0; /* Remove default button padding */
+  margin-left: 10px;
+  transition: color 0.2s ease;
+}
+
+.navigation .logout-button:hover {
+  color: #c0392b; /* Darker red on hover */
+}
