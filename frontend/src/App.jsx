@@ -20,7 +20,16 @@ function App() {
   return (
     <>
       <Header />
-      <main style={{ /* ... your existing main styles ... */ }}>
+      <main style={{
+        paddingTop: '75px',      // Adjusted for ~65px header + 10px buffer
+        paddingBottom: '90px',   // Adjusted for ~80px footer + 10px buffer
+        width: '100%',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        flexGrow: 1              // Add this to ensure main content takes available vertical space
+      }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
