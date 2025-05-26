@@ -5,6 +5,7 @@ import './App.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute'; // Ensure this import is correct
+import UploadVideo from './components/Creator/UploadVideo'; // <--- IMPORT
 
 // Import Page Components
 import HomePage from './pages/HomePage';
