@@ -1,20 +1,21 @@
 // frontend/src/pages/LoginPage.jsx
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link, useLocation } from 'react-router-dom'; // Import useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import './LoginPage.css';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState(''); // <<--- 1. ADD THIS STATE
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
   const { signup, login, currentUser } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Get location object
-  const from = location.state?.from?.pathname || "/"; // Get 'from' path or default to homepage
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   // Redirect if already logged in
   useEffect(() => {
@@ -23,22 +24,35 @@ function LoginPage() {
     }
   }, [currentUser, navigate, from]);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    // Simple validation for displayName if signing up
+    if (!isLogin && displayName.trim() === '') {
+      setError('Display Name is required for sign up.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(email, password, displayName); // <<--- 3. PASS DISPLAYNAME HERE
       }
-      // No need to navigate here, useEffect will handle it when currentUser updates
-      // navigate(from, { replace: true }); // Redirect to the page they came from, or homepage
+      // Redirect is handled by useEffect
     } catch (err) {
-      setError(err.message || (isLogin ? 'Failed to log in' : 'Failed to create an account'));
+      // Improved error handling based on common Firebase codes
+      if (err.code === 'auth/email-already-in-use') {
+        setError('This email address is already in use. Please try logging in or use a different email.');
+      } else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password.');
+      } else {
+        setError(err.message || (isLogin ? 'Failed to log in' : 'Failed to create an account'));
+      }
+      console.error("Auth Error in LoginPage:", err); // Log the full error for debugging
     }
     setLoading(false);
   };
@@ -48,12 +62,11 @@ function LoginPage() {
     setError('');
     setEmail('');
     setPassword('');
+    setDisplayName(''); // <<--- 4. CLEAR DISPLAYNAME WHEN TOGGLING
   };
 
-  // If currentUser becomes available while on this page (e.g. due to fast auth check)
-  // the useEffect above will handle the redirect. So, we might not even see this render much.
   if (currentUser) {
-    return <div>Loading...</div>; // Or redirect immediately, but useEffect is cleaner
+    return <div>Loading...</div>;
   }
 
   return (
@@ -62,7 +75,18 @@ function LoginPage() {
         <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
         {error && <p className="error-message">{error}</p>}
         <form onSubmit={handleSubmit}>
-          {/* ... rest of your form ... */}
+          {!isLogin && ( // <<--- 2. ADD THIS ENTIRE BLOCK FOR DISPLAY NAME INPUT
+            <div className="form-group">
+              <label htmlFor="displayName">Display Name</label>
+              <input
+                type="text"
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required={!isLogin}
+              />
+            </div>
+          )}
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
