@@ -84,3 +84,40 @@
 .buy-button:hover {
   background-color: #2980b9;
 }
+
+.video-thumbnail-wrapper {
+  width: 100%;
+  height: 170px; /* Match .video-thumbnail height */
+  background-color: #e0e0e0; /* Grey background */
+  display: flex; /* For centering icon if needed */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Important */
+  position: relative; /* For absolute positioning of indicator */
+}
+
+.video-thumbnail {
+  width: 100%;
+  height: 100%; /* Make image fill wrapper */
+  object-fit: cover; /* Cover the area, might crop */
+}
+
+/* Styles when image fails to load and error state is active */
+.video-thumbnail-wrapper.error-state .video-thumbnail {
+  /* Optionally hide the broken img element if you only want to show the background and custom icon */
+  /* display: none; */
+  /* Or make it smaller so the background shows more, and the native broken icon is less obtrusive */
+  width: 50px;
+  height: 50px;
+  object-fit: contain; /* Show the whole (broken) icon */
+}
+
+.broken-image-indicator {
+  position: absolute;
+  font-size: 2em; /* Adjust size of your icon/emoji */
+  color: #888;
+  /* If using an <img> for the icon:
+  width: 48px;
+  height: 48px;
+  */
+}
