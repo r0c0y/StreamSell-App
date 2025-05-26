@@ -6,72 +6,82 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth';
-import { auth, db } from '../firebase'; // <<--- 1. IMPORT db FROM FIREBASE
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'; // <<--- 2. IMPORT FIRESTORE FUNCTIONS
+import { auth, db } from '../firebase';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore'; // <<--- IMPORT getDoc
 
-// Create the Auth Context
 const AuthContext = createContext();
 
-// Custom hook to use the Auth Context
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-// AuthProvider component
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // MODIFIED signup function to include Firestore write
-async function signup(email, password, displayName = '') {
+  async function signup(email, password, displayName = '') {
+    // ... (your existing signup function with Firestore write - looks good on GitHub)
     try {
-      // 1. Create user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // 2. Create a document reference in Firestore for this new user
-      const userDocRef = doc(db, "users", user.uid); // Path: /users/{the_user's_unique_ID}
-
-      // 3. Prepare the data to store in the Firestore document
+      const userDocRef = doc(db, "users", user.uid);
       const userData = {
-        uid: user.uid, // Storing the UID again for convenience
-        email: user.email, // Storing the email
-        displayName: displayName.trim() || email.split('@')[0], // Use provided displayName or a default
-        role: 'viewer', // Assign a default role
-        createdAt: serverTimestamp(), // Get a server-generated timestamp
+        uid: user.uid,
+        email: user.email,
+        displayName: displayName.trim() || email.split('@')[0],
+        role: 'viewer',
+        createdAt: serverTimestamp(),
       };
-
-      // 4. Write the data to Firestore
-      await setDoc(userDocRef, userData); // This is the 'setDoc logic'
-
-      // 5. Return the authentication user credential
+      await setDoc(userDocRef, userData);
+      // No need to set currentUser here, onAuthStateChanged will handle it
       return userCredential;
     } catch (error) {
-      console.error("Error during signup (AuthContext):", error.message);
-      console.error("Full error object (AuthContext):", error);
-      throw error; // Re-throw so LoginPage can catch it
+      console.error("Error during signup (AuthContext):", error.message, error);
+      throw error;
     }
   }
 
-  // Wrapper for Firebase login
   function login(email, password) {
     return signInWithEmailAndPassword(auth, email, password);
   }
 
-  // Wrapper for Firebase logout
   function logout() {
     return signOut(auth);
   }
 
-  // Effect to listen for Firebase auth state changes
+  // MODIFIED useEffect to fetch Firestore user data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => { // <<--- Make callback async
+      if (user) {
+        // User is signed in, fetch their Firestore document
+        const userDocRef = doc(db, "users", user.uid);
+        try {
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            // Merge Firebase Auth user data with Firestore data
+            setCurrentUser({
+              ...user, // Spread Firebase Auth user properties (uid, email, etc.)
+              ...docSnap.data() // Spread Firestore document data (displayName, role, etc.)
+            });
+          } else {
+            // This case should ideally not happen if signup always creates a Firestore doc
+            console.warn("No such user document in Firestore for UID:", user.uid);
+            setCurrentUser(user); // Fallback to just the Auth user object
+          }
+        } catch (error) {
+          console.error("Error fetching user document from Firestore:", error);
+          setCurrentUser(user); // Fallback in case of error
+        }
+      } else {
+        // User is signed out
+        setCurrentUser(null);
+      }
       setLoading(false);
     });
-    return unsubscribe;
-  }, []);
+
+    return unsubscribe; // Cleanup subscription
+  }, []); // Empty dependency array
 
   const value = {
     currentUser,

@@ -1,17 +1,17 @@
 // frontend/src/components/Header.jsx
 import React from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom'; // Import useNavigate
-import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Header.css';
 
 function Header() {
-  const { currentUser, logout } = useAuth(); // Get currentUser and logout function
+  const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login'); // Redirect to login page after logout
+      navigate('/login');
     } catch (error) {
       console.error("Failed to log out", error);
       // Handle logout error (e.g., show a message)
@@ -27,13 +27,17 @@ function Header() {
         <nav className="navigation">
           <NavLink to="/" end>Home</NavLink>
           <NavLink to="/browse">Browse Videos</NavLink>
-          <NavLink to="/upload">Upload</NavLink> {/* We'll protect this route later */}
+          <NavLink to="/upload">Upload</NavLink>
 
           {currentUser ? (
             <>
-              {/* You can add a link to a user profile page here later */}
-              {/* <NavLink to="/profile">Profile</NavLink> */}
-              <span className="user-email">{currentUser.email}</span> {/* Display user's email */}
+              {/* Display displayName if available, otherwise fallback to email */}
+              <span className="user-greeting">
+                Hi, {currentUser.displayName || currentUser.email}
+              </span>
+              {/* Example: Log role if needed for debugging
+              {currentUser.role && <span style={{color: 'yellow', marginLeft: '5px'}}>({currentUser.role})</span>}
+              */}
               <button onClick={handleLogout} className="logout-button">Logout</button>
             </>
           ) : (
