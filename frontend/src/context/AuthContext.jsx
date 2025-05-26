@@ -6,25 +6,52 @@ import {
   signInWithEmailAndPassword,
   signOut
 } from 'firebase/auth';
-import { auth } from '../firebase'; // Ensure this path is correct to your firebase.js or firebase.jsx
+import { auth, db } from '../firebase'; // <<--- 1. IMPORT db FROM FIREBASE
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'; // <<--- 2. IMPORT FIRESTORE FUNCTIONS
 
-// 1. Create the Auth Context
+// Create the Auth Context
 const AuthContext = createContext();
 
-// 2. Custom hook to easily use the Auth Context
+// Custom hook to use the Auth Context
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }
 
-// 3. AuthProvider component that will wrap our application
+// AuthProvider component
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true); // To manage initial auth state check
+  const [loading, setLoading] = useState(true);
 
-  // Wrapper for Firebase signup
-  function signup(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
+  // MODIFIED signup function to include Firestore write
+async function signup(email, password, displayName = '') {
+    try {
+      // 1. Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Create a document reference in Firestore for this new user
+      const userDocRef = doc(db, "users", user.uid); // Path: /users/{the_user's_unique_ID}
+
+      // 3. Prepare the data to store in the Firestore document
+      const userData = {
+        uid: user.uid, // Storing the UID again for convenience
+        email: user.email, // Storing the email
+        displayName: displayName.trim() || email.split('@')[0], // Use provided displayName or a default
+        role: 'viewer', // Assign a default role
+        createdAt: serverTimestamp(), // Get a server-generated timestamp
+      };
+
+      // 4. Write the data to Firestore
+      await setDoc(userDocRef, userData); // This is the 'setDoc logic'
+
+      // 5. Return the authentication user credential
+      return userCredential;
+    } catch (error) {
+      console.error("Error during signup (AuthContext):", error.message);
+      console.error("Full error object (AuthContext):", error);
+      throw error; // Re-throw so LoginPage can catch it
+    }
   }
 
   // Wrapper for Firebase login
@@ -39,27 +66,21 @@ export function AuthProvider({ children }) {
 
   // Effect to listen for Firebase auth state changes
   useEffect(() => {
-    // onAuthStateChanged returns an unsubscribe function
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user); // Set user to null if logged out, or user object if logged in
-      setLoading(false);    // Auth state has been determined, no longer loading
+      setCurrentUser(user);
+      setLoading(false);
     });
-
-    // Cleanup: Unsubscribe from the listener when the component unmounts
     return unsubscribe;
-  }, []); // Empty dependency array ensures this effect runs only once on mount and cleans up on unmount
+  }, []);
 
-  // The value object that will be provided to consuming components
   const value = {
     currentUser,
     signup,
     login,
     logout,
-    loading // Expose loading state so components can react if needed
+    loading
   };
 
-  // Render the AuthContext.Provider with the value
-  // Only render children once the initial loading (auth state check) is complete
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
