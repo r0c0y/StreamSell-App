@@ -1,61 +1,64 @@
 // frontend/src/components/VideoList.jsx
 import React, { useState, useEffect } from 'react';
-import VideoCard from './VideoCard'; // Assuming VideoCard.jsx is in the same directory
-import './VideoList.css';          // Assuming VideoList.css is in the same directory
-import { db } from '../firebase';   // Your Firestore instance from firebase.js
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import VideoCard from './VideoCard';
+import './VideoList.css';
+import { db } from '../firebase';
+// Ensure onSnapshot is imported
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 
 function VideoList() {
-  const [videos, setVideos] = useState([]); // To store the array of video objects
-  const [isLoading, setIsLoading] = useState(true); // To show a loading state
-  const [error, setError] = useState(null); // To show an error message if fetching fails
+  const [videos, setVideos] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Define an async function to fetch videos from Firestore
-    const fetchVideosFromFirestore = async () => {
-      setIsLoading(true); // Set loading true at the start of fetching
-      setError(null);     // Clear any previous errors
+    setIsLoading(true); // Set loading at the beginning of the effect
+    setError(null);     // Clear previous errors
 
-      try {
-        // 1. Get a reference to the 'videos' collection
-        const videosCollectionRef = collection(db, 'videos');
+    // 1. Get a reference to the 'videos' collection in Firestore
+    const videosCollectionRef = collection(db, 'videos');
 
-        // 2. Create a query (optional: for ordering, filtering, limiting)
-        //    - Order by 'createdAt' in descending order (newest first)
-        //    - Limit to 12 videos for this example
-        const q = query(videosCollectionRef, orderBy('createdAt', 'desc'), limit(12));
+    // 2. Create a query to order videos by 'createdAt' (newest first) and limit results
+    //    Adjust 'limit(12)' or the orderBy field as needed for your application
+    const q = query(videosCollectionRef, orderBy('createdAt', 'desc'), limit(12));
 
-        // 3. Execute the query to get a snapshot of the documents
-        const querySnapshot = await getDocs(q); // Use getDocs(videosCollectionRef) to get all without query
-
-        // 4. Map over the documents in the snapshot to extract data
-        const fetchedVideos = querySnapshot.docs.map((doc) => {
-          // For each document, return an object with its ID and data
-          return {
-            id: doc.id,          // The unique ID of the Firestore document
-            ...doc.data()        // Spread all fields from the document (title, price, etc.)
-          };
-        });
-
-        setVideos(fetchedVideos); // Update the state with the fetched videos
-      } catch (err) {
-        console.error("Error fetching videos from Firestore:", err);
-        setError("Failed to load videos. Please check your connection or try again later.");
-      } finally {
-        setIsLoading(false); // Set loading to false once fetching is complete (success or fail)
+    // 3. Set up the real-time listener using onSnapshot
+    //    onSnapshot returns an unsubscribe function, which we'll use for cleanup
+    const unsubscribe = onSnapshot(
+      q, // The query to listen to
+      (querySnapshot) => {
+        // This callback fires initially and whenever the query results change
+        const fetchedVideos = querySnapshot.docs.map((doc) => ({
+          id: doc.id,       // Get the document ID
+          ...doc.data()     // Get all other data fields from the document
+        }));
+        setVideos(fetchedVideos); // Update the videos state
+        setIsLoading(false);      // Data has been fetched (or updated), so not loading anymore
+        setError(null);           // Clear any previous errors if data is successfully fetched
+      },
+      (err) => { // This is the error callback for the onSnapshot listener
+        console.error("Error listening to videos collection:", err);
+        setError("Failed to load videos in real-time. Please try refreshing or check back later.");
+        setIsLoading(false); // Stop loading even if there's an error
       }
+    );
+
+    // 4. Cleanup function: This is crucial!
+    //    It runs when the component unmounts, unsubscribing from the Firestore listener
+    //    to prevent memory leaks and unnecessary background operations.
+    return () => {
+      unsubscribe();
     };
 
-    fetchVideosFromFirestore(); // Call the fetch function when the component mounts
+  }, []); // Empty dependency array means this effect runs once when the component mounts
+          // and the cleanup function runs when it unmounts.
 
-  }, []); // Empty dependency array ensures this effect runs only once on component mount
-
-  // Conditional rendering based on loading and error states
+  // Conditional rendering based on loading, error, and videos states
   if (isLoading) {
     return (
       <div className="video-list-container page-content">
         <h2>Loading Videos...</h2>
-        {/* You could add a spinner component here */}
+        {/* You could replace this with a more sophisticated spinner component */}
       </div>
     );
   }
@@ -69,19 +72,19 @@ function VideoList() {
     );
   }
 
-  if (videos.length === 0) {
+  if (!isLoading && videos.length === 0) {
     return (
       <div className="video-list-container page-content">
         <h2>No Videos Found</h2>
-        <p>It looks like there's no content here yet. Check back soon!</p>
+        <p>It looks like there's no content here yet. Add some videos or check back soon!</p>
       </div>
     );
   }
 
-  // If loaded, no error, and videos exist, render the list
+  // If everything is fine, render the list of videos
   return (
     <div className="video-list-container">
-      <h2>Featured Videos</h2> {/* Or simply "Videos" */}
+      <h2>Featured Videos</h2> {/* Or simply "Videos", or make this dynamic */}
       <div className="video-grid">
         {videos.map((video) => (
           <VideoCard key={video.id} video={video} />
