@@ -1,26 +1,40 @@
 // frontend/src/components/ProtectedRoute.jsx
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom'; // <<--- ADD Outlet
 import { useAuth } from '../context/AuthContext';
 
-function ProtectedRoute({ children }) {
+// Props:
+// - allowedRoles: An array of roles that are allowed to access this route (e.g., ['creator', 'admin'])
+function ProtectedRoute({ allowedRoles }) { // <<--- ADD allowedRoles PROP
   const { currentUser, loading } = useAuth();
-  const location = useLocation(); // To remember where the user was trying to go
+  const location = useLocation();
 
   if (loading) {
-    // While Firebase is checking auth state, show a loading indicator or nothing
-    // This prevents a flash of the login page before auth state is confirmed
-    return <div>Loading authentication state...</div>; // Or a spinner component
+    return <div>Loading authentication state...</div>;
   }
 
   if (!currentUser) {
-    // User not logged in, redirect them to the /login page
-    // Pass the current location in state so we can redirect them back after login
+    // Not logged in
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // User is logged in, render the children components (the protected page)
-  return children;
+  // Check for allowed roles IF allowedRoles prop is provided
+  if (allowedRoles && allowedRoles.length > 0) {
+    // Ensure currentUser.role exists before trying to check it
+    if (!currentUser.role || !allowedRoles.includes(currentUser.role)) {
+      // Logged in, but role is not in the allowedRoles array
+      console.warn(
+        `User with role '${currentUser.role || 'undefined'}' attempted to access a restricted route. Allowed roles: ${allowedRoles.join(', ')}`
+      );
+      // Redirect to homepage or an "Unauthorized" page
+      return <Navigate to="/" replace />;
+      // Example for an unauthorized page:
+      // return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
+  // If we reach here, user is authenticated and (if roles specified) authorized
+  return <Outlet />; // <<--- RENDER <Outlet /> to display the nested child route
 }
 
 export default ProtectedRoute;
