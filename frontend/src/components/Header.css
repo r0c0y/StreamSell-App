@@ -80,7 +80,7 @@ navigation a { /* This styles both Link and NavLink initially */
 }
 .navigation .user-greeting { /* Changed from .user-email */
   margin-left: 20px;
-  color: #ecf0f1;
+  color: #eeff00;
   font-size: 0.9em;
   padding-right: 10px;
   border-right: 1px solid #4a6c8c;
